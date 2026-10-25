@@ -1,80 +1,54 @@
-# RL-LCR: Reinforcement-Learning Lagrangian-Constrained Routing
+# RL-LCR: Reinforcement Learning with Lagrangian Clinical Constraints for Alarm-Aware Routing
 
-Reinforcement-Learning Lagrangian-Constrained Routing for software-defined wireless sensor and body-area networks (SD-WSN/WBAN) used in ICU and ambulatory patient-vitals monitoring.
+This repository accompanies the manuscript "RL-LCR: Reinforcement Learning with Lagrangian Clinical Constraints for Alarm-Aware Routing in ICU and Ambulatory Sensor Networks". RL-LCR routes physiological waveform traffic over IEEE 802.15.4 networks. A Q-learning agent works with a primal-dual controller so that critical alarms stay within their delay budgets and wearable nodes stay within their energy limits.
 
-## Overview
+## Repository status
 
-RL-LCR couples a tabular Q-learning routing agent with a fixed-multiplier Lagrangian gradient-descent optimization layer for SD-WSN/WBAN patient-vitals monitoring:
-- Proposes $K$ candidate routes ranked by tabular Q-values.
-- Adjusts a relaxed route variable $x$ to satisfy strict end-to-end delay constraints $D(x) \le D_{\max}[\text{alarm class}]$ (with ARRHYTHMIA, DESATURATION, and HYPOTENSION tighter than ROUTINE).
-- Enforces node energy draw limits $E \le E_{\max}[\text{node type}]$ (distinguishing bedside mains-assisted vs wearable battery-only nodes).
-- Verifies feasibility before the SDN controller installs flow rules; if infeasible, iterates to the next-best RL candidate.
+This repository holds a partial set of scripts covering the main pipeline. The datasets and large files are too big to host on GitHub. The full code, configuration files and supporting data can be downloaded here:
 
-## Setup (Apple Silicon)
+**Full package:** https://drive.google.com/file/d/1OJs0MHmszvi38UQawqMFwV7Ksy3FPvUI/view?usp=sharing
 
-Optimized for macOS Apple Silicon (arm64, unified memory) using PyTorch Metal Performance Shaders (MPS):
+## Contents
 
-```bash
-# Create conda environment with Python 3.11
-make env
-conda activate rllcr
-
-# Install package in editable mode
-make install
-
-# Configure environment variables
-cp .env.example .env
-export PYTORCH_ENABLE_MPS_FALLBACK=1
-
-# Verify environment
-make check-env
+```
+RL-LCR/
+├── preprocessing/   # window extraction, quality rules, filtering
+├── labelling/       # alarm labelling with persistence rules
+├── traffic/         # packetisation and offered-load generation
+├── routing/         # Q-learning agent and primal-dual controller
+├── evaluation/      # metrics, multi-seed runs, statistical tests
+└── README.md
 ```
 
-## Data Access
+## Datasets
 
-The project uses the following datasets:
-- **Primary Fitting**: MIMIC-III Waveform Matched Subset and MIMIC-III Clinical Database (PhysioNet credentialed access required).
-- **Zero-Shot External Evaluation**: eICU, BIDMC, PPG-DaLiA, and WESAD (optional).
+The raw datasets are not redistributed. Download them from PhysioNet and the UCI repository under their own licences:
 
-Set credentials in `.env`:
-```bash
-PHYSIONET_USERNAME=your_username
-DATA_ROOT=data
-KAGGLE_USERNAME=your_kaggle_username
-KAGGLE_KEY=your_kaggle_api_key
+- MIMIC-III Waveform Database: https://physionet.org/content/mimic3wdb/ (credentialed access)
+- eICU Collaborative Research Database: https://physionet.org/content/eicu-crd/ (credentialed access)
+- BIDMC PPG and Respiration Dataset: https://physionet.org/content/bidmc/
+- PPG-DaLiA: https://archive.ics.uci.edu/dataset/495/ppg+dalia
+
+## Requirements
+
+- Python 3.10 or later
+- wfdb, numpy, scipy, pandas, matplotlib
+- PyTorch (the primal solver was run with the MPS backend; CPU and CUDA also work)
+
+```
+pip install wfdb numpy scipy pandas matplotlib torch
 ```
 
-## Pipeline
+## Usage
 
-The end-to-end experimental pipeline progresses through:
-1. `00_check_env`: Validate environment, MPS fallback, and hardware P-cores.
-2. Data collection and cataloging (`mimic_download.py`, `mimic_catalog.py`).
-3. Preprocessing and signal cleaning (`cleaning.py`, `events.py`, `splits.py`).
-4. Network simulation and trace generation (`sim/`, `trace_player.py`).
-5. RL-LCR and baseline protocol evaluation (`routing/`, `eval/`).
-6. Result verification, table generation, and manuscript figure rendering (`viz/`, `reports/`).
-
-## Reproduce
-
-Run automated linting, test suites, and benchmarks:
-
-```bash
-# Run code quality checks
-make lint
-
-# Run fast unit tests
-make test
-
-# Run full test suite
-make test-all
-```
+1. Download the full package from the Drive link above and extract it into the repository root.
+2. Place the datasets in `data/` as described in the package.
+3. Run preprocessing, then training, then evaluation using the scripts in each folder.
 
 ## Citation
 
-```bibtex
-@article{rllcr2026,
-  title={RL-LCR: Reinforcement-Learning Lagrangian-Constrained Routing for SD-WSN/WBAN Patient-Vitals Monitoring},
-  author={Research Team},
-  year={2026}
-}
-```
+If you use this code, please cite the manuscript (details will be added after publication).
+
+## License
+
+MIT License
